@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <title>安全巡检记录</title>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #e0e8f2, #d0dce7);
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+       .sidebar {
+            width: 20%;
+            background-color: #f4f7fc;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+       .sidebar-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+       .sidebar-logo i {
+            font-size: 28px;
+            color: #4285f4;
+            margin-right: 10px;
+        }
+
+       .sidebar-logo span {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+       .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+       .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.3s ease;
+        }
+
+       .sidebar-nav a:hover {
+            background-color: #e0e8f2;
+        }
+
+       .sidebar-nav a i {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+       .active {
+            background-color: #e0e8f2;
+        }
+
+       .main-content {
+            width: 80%;
+            margin-left: 20%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+       .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+       .form-group {
+            margin-bottom: 20px;
+        }
+
+       .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+       .form-group input,
+       .form-group select,
+       .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+       .form-group textarea {
+            min-height: 100px;
+        }
+
+       .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+       .btn-blue {
+            background-color: #4285f4;
+            color: white;
+        }
+
+       .btn-blue:hover {
+            background-color: #2d69d1;
+        }
+
+       .btn-gray {
+            background-color: #ccc;
+            color: #333;
+        }
+
+       .btn-gray:hover {
+            background-color: #b3b3b3;
+        }
+
+       .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+       .table th,
+       .table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+       .table th {
+            background-color: #f4f7fc;
+            font-weight: bold;
+        }
+
+       .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+       .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 500px;
+        }
+
+       .modal-close {
+            float: right;
+            cursor: pointer;
+        }
+
+       .modal-close i {
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flex h-screen">
+        <!-- 左侧导航栏 -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-bolt"></i>
+                <span>安全巡检</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" id="record-nav" class="sidebar-nav-item">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span>记录</span>
+                </a>
+                <a href="#" id="rectify-nav" class="sidebar-nav-item">
+                    <i class="fa-solid fa-wrench"></i>
+                    <span>整改</span>
+                </a>
+                <a href="#" id="summary-nav" class="sidebar-nav-item">
+                    <i class="fa-solid fa-chart-bar"></i>
+                    <span>汇总</span>
+                </a>
+                <a href="#" id="deleted-nav" class="sidebar-nav-item">
+                    <i class="fa-solid fa-trash"></i>
+                    <span>已删除</span>
+                </a>
+            </nav>
+        </div>
+        <!-- 右侧主内容区域 -->
+        <div class="main-content">
+            <!-- 记录页 -->
+            <div id="record-page" class="hidden">
+                <h1 class="page-title">安全巡检记录</h1>
+                <form id="record-form">
+                    <div class="form-group">
+                        <label for="problem-category">问题分类</label>
+                        <select id="problem-category" class="form-control" required>
+                            <option value="">请选择</option>
+                            <option value="运作">运作</option>
+                            <option value="安全">安全</option>
+                            <option value="5S">5S</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div id="other-category-input" class="form-group hidden">
+                        <label for="other-category">请填写具体问题分类</label>
+                        <input type="text" id="other-category" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="location">地点</label>
+                        <input type="text" id="location" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="problem-description">问题描述</label>
+                        <textarea id="problem-description" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="problem-photo">问题照片</label>
+                        <input type="file" id="problem-photo" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="discovery-date">发现日期</label>
+                        <input type="date" id="discovery-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="discoverer">发现人</label>
+                        <input type="text" id="discoverer" class="form-control" required>
+                    </div>
+                    <div class="flex space-x-4">
+                        <button type="button" id="submit-record" class="btn btn-blue">提交问题</button>
+                        <button type="button" id="reset-record" class="btn btn-gray">重置</button>
+                    </div>
+                </form>
+            </div>
+            <!-- 整改页 -->
+            <div id="rectify-page" class="hidden">
+                <h1 class="page-title">安全巡检整改</h1>
+                <div class="flex justify-end mb-4">
+                    <select id="rectify-location-filter" class="form-control">
+                        <option value="">全部</option>
+                    </select>
+                </div>
+                <table id="rectify-table" class="table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>问题分类</th>
+                            <th>地点</th>
+                            <th>问题描述</th>
+                            <th>问题照片</th>
+                            <th>发现日期</th>
+                            <th>发现人</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <!-- 汇总页 -->
+            <div id="summary-page" class="hidden">
+                <h1 class="page-title">安全巡检汇总</h1>
+                <div class="flex justify-end mb-4">
+                    <select id="summary-location-filter" class="form-control">
+                        <option value="">全部</option>
+                    </select>
+                </div>
+                <table id="summary-table" class="table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>问题分类</th>
+                            <th>地点</th>
+                            <th>问题描述</th>
+                            <th>问题照片</th>
+                            <th>发现日期</th>
+                            <th>发现人</th>
+                            <th>整改措施</th>
+                            <th>原因分析</th>
+                            <th>完成进度</th>
+                            <th>完成照片</th>
+                            <th>整改人</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <button id="export-summary" class="btn btn-blue mt-4">导出 Excel</button>
+                <button id="download-images" class="btn btn-gray mt-4">批量下载图片</button>
+            </div>
+            <!-- 已删除页 -->
+            <div id="deleted-page" class="hidden">
+                <h1 class="page-title">已删除记录</h1>
+                <table id="deleted-table" class="table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>问题分类</th>
+                            <th>地点</th>
+                            <th>问题描述</th>
+                            <th>问题照片</th>
+                            <th>发现日期</th>
+                            <th>发现人</th>
+                            <th>整改措施</th>
+                            <th>原因分析</th>
+                            <th>完成进度</th>
+                            <th>完成照片</th>
+                            <th>整改人</th>
+                            <th>删除人</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <button id="clear-deleted" class="btn btn-gray mt-4">清空已删除记录</button>
+            </div>
+        </div>
+    </div>
+    <!-- 整改弹窗 -->
+    <div id="rectify-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="page-title">整改信息</h2>
+            <form id="rectify-modal-form">
+                <div class="form-group">
+                    <label for="rectify-measures">整改措施</label>
+                    <textarea id="rectify-measures" class="form-control" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="cause-analysis">原因分析</label>
+                    <textarea id="cause-analysis" class="form-control" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="progress">完成进度</label>
+                    <select id="progress" class="form-control" required>
+                        <option value="">请选择</option>
+                        <option value="已完成" class="text-green-500">已完成</option>
+                        <option value="进行中" class="text-yellow-500">进行中</option>
+                        <option value="未完成" class="text-red-500">未完成</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="rectify-photo">完成照片</label>
+                    <input type="file" id="rectify-photo" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="rectifier">整改人</label>
+                    <input type="text" id="rectifier" class="form-control" required>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="button" id="submit-rectify" class="btn btn-blue">提交整改</button>
+                    <button type="button" id="close-rectify-modal" class="btn btn-gray">关闭</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        const recordPage = document.getElementById('record-page');
+        const rectifyPage = document.getElementById('rectify-page');
+        const summaryPage = document.getElementById('summary-page');
+        const deletedPage = document.getElementById('deleted-page');
+        const recordNav = document.getElementById('record-nav');
+        const rectifyNav = document.getElementById('rectify-nav');
+        const summaryNav = document.getElementById('summary-nav');
+        const deletedNav = document.getElementById('deleted-nav');
+        const recordForm = document.getElementById('record-form');
+        const submitRecord = document.getElementById('submit-record');
+        const resetRecord = document.getElementById('reset-record');
+        const rectifyTable = document.getElementById('rectify-table').getElementsByTagName('tbody')[0];
+        const rectifyLocationFilter = document.getElementById('rectify-location-filter');
+        const summaryTable = document.getElementById('summary-table').getElementsByTagName('tbody')[0];
+        const summaryLocationFilter = document.getElementById('summary-location-filter');
+        const exportSummary = document.getElementById('export-summary');
+        const downloadImages = document.getElementById('download-images');
+        const rectifyModal = document.getElementById('rectify-modal');
+        const rectifyModalForm = document.getElementById('rectify-modal-form');
+        const submitRectify = document.getElementById('submit-rectify');
+        const deletedTable = document.getElementById('deleted-table').getElementsByTagName('tbody')[0];
+        const clearDeleted = document.getElementById('clear-deleted');
+        const closeRectifyModal = document.getElementById('close-rectify-modal');
+
+        // 从 localStorage 中获取数据，并添加错误处理
+        function getLocalData(key) {
+            try {
+                const data = localStorage.getItem(key);
+                return data? JSON.parse(data) : [];
+            } catch (error) {
+                console.error(`读取 ${key} 数据时出错:`, error);
+                return [];
+            }
+        }
+
+        let recordData = getLocalData('recordData');
+        let rectifyData = getLocalData('rectifyData');
+        let summaryData = getLocalData('summaryData');
+        let deletedData = getLocalData('deletedData');
+        let rectifyIndex = null;
+
+        const problemCategorySelect = document.getElementById('problem-category');
+        const otherCategoryInputDiv = document.getElementById('other-category-input');
+        const otherCategoryInput = document.getElementById('other-category');
+
+        const discoveryDateInput = document.getElementById('discovery-date');
+        const today = new Date().toISOString().split('T')[0];
+        discoveryDateInput.setAttribute('max', today);
+
+        // 点击输入框任意位置弹出日期选择器
+        discoveryDateInput.addEventListener('click', function () {
+            this.focus();
+            this.showPicker();
+        });
+
+        problemCategorySelect.addEventListener('change', function () {
+            if (this.value === '其他') {
+                otherCategoryInputDiv.classList.remove('hidden');
+            } else {
+                otherCategoryInputDiv.classList.add('hidden');
+                otherCategoryInput.value = '';
+            }
+        });
+
+        // 显示记录页
+        recordNav.addEventListener('click', () => {
+            showPage(recordPage);
+            setActiveNav(recordNav);
+        });
+
+        // 显示整改页
+        rectifyNav.addEventListener('click', () => {
+            showPage(rectifyPage);
+            setActiveNav(rectifyNav);
+            populateRectifyTable();
+            populateRectifyLocationFilter();
+        });
+
+        // 显示汇总页
+        summaryNav.addEventListener('click', () => {
+            showPage(summaryPage);
+            setActiveNav(summaryNav);
+            populateSummaryTable();
+            populateSummaryLocationFilter();
+        });
+
+        // 显示已删除页
+        deletedNav.addEventListener('click', () => {
+            showPage(deletedPage);
+            setActiveNav(deletedNav);
+            populateDeletedTable();
+        });
+
+        // 提交记录
+        submitRecord.addEventListener('click', () => {
+            if (!recordForm.checkValidity()) {
+                recordForm.reportValidity();
+                return;
+            }
+            const problemCategory = document.getElementById('problem-category').value;
+            const location = document.getElementById('location').value;
+            const problemDescription = document.getElementById('problem-description').value;
+            const problemPhoto = document.getElementById('problem-photo').files[0];
+            const discoveryDate = document.getElementById('discovery-date').value;
+            const discoverer = document.getElementById('discoverer').value;
+
+            let finalProblemCategory = problemCategory;
+            if (problemCategory === '其他') {
+                finalProblemCategory = otherCategoryInput.value;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const problemPhotoUrl = e.target.result;
+                const newRecord = {
+                    id: getNextId(summaryData),
+                    problemCategory: finalProblemCategory,
+                    location,
+                    problemDescription,
+                    problemPhoto: problemPhotoUrl,
+                    discoveryDate,
+                    discoverer
+                };
+
+                recordData.push(newRecord);
+                saveDataToLocalStorage();
+                recordForm.reset();
+                otherCategoryInputDiv.classList.add('hidden');
+                otherCategoryInput.value = '';
+                alert('问题已提交至整改页');
+                populateRectifyTable();
+                populateRectifyLocationFilter();
+            };
+            reader.readAsDataURL(problemPhoto);
+        });
+
+        // 重置记录表单
+        resetRecord.addEventListener('click', () => {
+            recordForm.reset();
+            otherCategoryInputDiv.classList.add('hidden');
+            otherCategoryInput.value = '';
+        });
+
+        // 填充整改表格
+        function populateRectifyTable() {
+            rectifyTable.innerHTML = '';
+            recordData.forEach((record, index) => {
+                const row = rectifyTable.insertRow();
+                row.insertCell().textContent = index + 1;
+                row.insertCell().textContent = record.problemCategory;
+                row.insertCell().textContent = record.location;
+                row.insertCell().textContent = record.problemDescription;
+                const photoCell = row.insertCell();
+                if (record.problemPhoto) {
+                    const img = document.createElement('img');
+                    img.src = record.problemPhoto;
+                    img.style.width = '100px';
+                    photoCell.appendChild(img);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = record.problemPhoto;
+                    downloadLink.download = `problem_photo_${record.id}.jpg`;
+                    downloadLink.textContent = '下载';
+                    photoCell.appendChild(downloadLink);
+                } else {
+                    photoCell.textContent = '无照片';
+                }
+                row.insertCell().textContent = record.discoveryDate;
+                row.insertCell().textContent = record.discoverer;
+                const actionCell = row.insertCell();
+                const rectifyButton = document.createElement('button');
+                rectifyButton.textContent = '整改';
+                rectifyButton.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'font-medium', 'py-1', 'px-2', 'rounded-md');
+                rectifyButton.addEventListener('click', () => {
+                    rectifyIndex = index;
+                    openRectifyModal();
+                });
+                actionCell.appendChild(rectifyButton);
+            });
+        }
+
+        // 填充整改地点筛选器
+        function populateRectifyLocationFilter() {
+            const locations = [...new Set(recordData.map(record => record.location))];
+            rectifyLocationFilter.innerHTML = '<option value="">全部</option>';
+            locations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                rectifyLocationFilter.appendChild(option);
+            });
+        }
+
+        // 填充汇总表格
+        function populateSummaryTable() {
+            summaryTable.innerHTML = '';
+            summaryData.forEach((summary, index) => {
+                const row = summaryTable.insertRow();
+                row.insertCell().textContent = index + 1;
+                row.insertCell().textContent = summary.problemCategory;
+                row.insertCell().textContent = summary.location;
+                row.insertCell().textContent = summary.problemDescription;
+                const problemPhotoCell = row.insertCell();
+                if (summary.problemPhoto) {
+                    const img = document.createElement('img');
+                    img.src = summary.problemPhoto;
+                    img.style.width = '100px';
+                    problemPhotoCell.appendChild(img);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = summary.problemPhoto;
+                    downloadLink.download = `problem_photo_${summary.id}.jpg`;
+                    downloadLink.textContent = '下载';
+                    problemPhotoCell.appendChild(downloadLink);
+                } else {
+                    problemPhotoCell.textContent = '无照片';
+                }
+                row.insertCell().textContent = summary.discoveryDate;
+                row.insertCell().textContent = summary.discoverer;
+                row.insertCell().textContent = summary.rectifyMeasures;
+                row.insertCell().textContent = summary.causeAnalysis;
+                row.insertCell().textContent = summary.progress;
+                const rectifyPhotoCell = row.insertCell();
+                if (summary.rectifyPhoto) {
+                    const img = document.createElement('img');
+                    img.src = summary.rectifyPhoto;
+                    img.style.width = '100px';
+                    rectifyPhotoCell.appendChild(img);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = summary.rectifyPhoto;
+                    downloadLink.download = `rectify_photo_${summary.id}.jpg`;
+                    downloadLink.textContent = '下载';
+                    rectifyPhotoCell.appendChild(downloadLink);
+                } else {
+                    rectifyPhotoCell.textContent = '无照片';
+                }
+                row.insertCell().textContent = summary.rectifier;
+                const actionCell = row.insertCell();
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = '删除';
+                deleteButton.classList.add('bg-red-500', 'hover:bg-red-600', 'text-white', 'font-medium', 'py-1', 'px-2', 'rounded-md');
+                deleteButton.addEventListener('click', () => {
+                    const deleter = prompt('请输入删除人姓名');
+                    if (deleter) {
+                        const deletedItem = { ...summary, deleter };
+                        deletedData.push(deletedItem);
+                        summaryData.splice(index, 1);
+                        saveDataToLocalStorage();
+                        populateSummaryTable();
+                        populateDeletedTable();
+                        alert('记录已删除并移入已删除页面');
+                    }
+                });
+                actionCell.appendChild(deleteButton);
+            });
+        }
+
+        // 填充汇总地点筛选器
+        function populateSummaryLocationFilter() {
+            const locations = [...new Set(summaryData.map(summary => summary.location))];
+            summaryLocationFilter.innerHTML = '<option value="">全部</option>';
+            locations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                summaryLocationFilter.appendChild(option);
+            });
+        }
+
+        // 打开整改弹窗
+        function openRectifyModal() {
+            rectifyModal.style.display = 'flex';
+        }
+
+        // 提交整改
+        submitRectify.addEventListener('click', () => {
+            if (!rectifyModalForm.checkValidity()) {
+                rectifyModalForm.reportValidity();
+                return;
+            }
+            const rectifyMeasures = document.getElementById('rectify-measures').value;
+            const causeAnalysis = document.getElementById('cause-analysis').value;
+            const progress = document.getElementById('progress').value;
+            const rectifyPhoto = document.getElementById('rectify-photo').files[0];
+            const rectifier = document.getElementById('rectifier').value;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const rectifyPhotoUrl = e.target.result;
+                const record = recordData[rectifyIndex];
+                const newSummary = {
+                    ...record,
+                    rectifyMeasures,
+                    causeAnalysis,
+                    progress,
+                    rectifyPhoto: rectifyPhotoUrl,
+                    rectifier
+                };
+
+                if (progress === '已完成') {
+                    summaryData.push(newSummary);
+                    rectifyData = recordData.filter((_, index) => index!== rectifyIndex);
+                    recordData = rectifyData;
+                    saveDataToLocalStorage();
+                    populateRectifyTable();
+                    populateRectifyLocationFilter();
+                    populateSummaryTable();
+                    populateSummaryLocationFilter();
+                    alert('问题已完成整改并提交至汇总页');
+                } else {
+                    recordData[rectifyIndex] = newSummary;
+                    saveDataToLocalStorage();
+                    populateRectifyTable();
+                    alert('整改未完成，信息保留在整改页');
+                }
+
+                rectifyModal.style.display = 'none';
+                rectifyModalForm.reset();
+            };
+            reader.readAsDataURL(rectifyPhoto);
+        });
+
+        // 关闭整改弹窗
+        closeRectifyModal.addEventListener('click', () => {
+            rectifyModal.style.display = 'none';
+            rectifyModalForm.reset();
+        });
+
+        // 导出汇总数据
+        exportSummary.addEventListener('click', () => {
+            if (!window.XLSX) {
+                console.error('xlsx库未正确加载');
+                alert('导出失败：xlsx库未正确加载，请刷新页面重试。');
+                return;
+            }
+            try {
+                const headers = ['序号', '问题分类', '地点', '问题描述', '问题照片', '发现日期', '发现人', '整改措施', '原因分析', '完成进度', '完成照片', '整改人'];
+                const data = summaryData.map(summary => [
+                    summary.id,
+                    summary.problemCategory,
+                    summary.location,
+                    summary.problemDescription,
+                    summary.problemPhoto? '查看网页下载' : '',
+                    summary.discoveryDate,
+                    summary.discoverer,
+                    summary.rectifyMeasures,
+                    summary.causeAnalysis,
+                    summary.progress,
+                    summary.rectifyPhoto? '查看网页下载' : '',
+                    summary.rectifier
+                ]);
+                const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, '汇总');
+
+                const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '安全巡检汇总.xlsx';
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('导出过程中出现错误:', error);
+                alert('导出失败，请查看控制台日志获取详细信息。');
+            }
+        });
+
+        // 批量下载图片
+        downloadImages.addEventListener('click', async () => {
+            const zip = new JSZip();
+            const allPhotos = [];
+            summaryData.forEach(summary => {
+                if (summary.problemPhoto) {
+                    allPhotos.push({ url: summary.problemPhoto, name: `problem_photo_${summary.id}.jpg` });
+                }
+                if (summary.rectifyPhoto) {
+                    allPhotos.push({ url: summary.rectifyPhoto, name: `rectify_photo_${summary.id}.jpg` });
+                }
+            });
+
+            for (const photo of allPhotos) {
+                const response = await fetch(photo.url);
+                const blob = await response.blob();
+                zip.file(photo.name, blob);
+            }
+
+            const content = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(content);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '安全巡检图片.zip';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // 显示页面
+        function showPage(page) {
+            recordPage.classList.add('hidden');
+            rectifyPage.classList.add('hidden');
+            summaryPage.classList.add('hidden');
+            deletedPage.classList.add('hidden');
+            page.classList.remove('hidden');
+        }
+
+        // 设置活动导航项
+        function setActiveNav(navItem) {
+            recordNav.classList.remove('bg-blue-500', 'text-white');
+            rectifyNav.classList.remove('bg-blue-500', 'text-white');
+            summaryNav.classList.remove('bg-blue-500', 'text-white');
+            deletedNav.classList.remove('bg-blue-500', 'text-white');
+            navItem.classList.add('bg-blue-500', 'text-white');
+        }
+
+        // 获取下一个可用的序号
+        function getNextId(data) {
+            if (data.length === 0) {
+                return 1;
+            }
+            return Math.max(...data.map(item => item.id)) + 1;
+        }
+
+        // 填充已删除表格
+        function populateDeletedTable() {
+            deletedTable.innerHTML = '';
+            deletedData.forEach((deleted, index) => {
+                const row = deletedTable.insertRow();
+                row.insertCell().textContent = index + 1;
+                row.insertCell().textContent = deleted.problemCategory;
+                row.insertCell().textContent = deleted.location;
+                row.insertCell().textContent = deleted.problemDescription;
+                const problemPhotoCell = row.insertCell();
+                if (deleted.problemPhoto) {
+                    const img = document.createElement('img');
+                    img.src = deleted.problemPhoto;
+                    img.style.width = '100px';
+                    problemPhotoCell.appendChild(img);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = deleted.problemPhoto;
+                    downloadLink.download = `problem_photo_${deleted.id}.jpg`;
+                    downloadLink.textContent = '下载';
+                    problemPhotoCell.appendChild(downloadLink);
+                } else {
+                    problemPhotoCell.textContent = '无照片';
+                }
+                row.insertCell().textContent = deleted.discoveryDate;
+                row.insertCell().textContent = deleted.discoverer;
+                row.insertCell().textContent = deleted.rectifyMeasures;
+                row.insertCell().textContent = deleted.causeAnalysis;
+                row.insertCell().textContent = deleted.progress;
+                const rectifyPhotoCell = row.insertCell();
+                if (deleted.rectifyPhoto) {
+                    const img = document.createElement('img');
+                    img.src = deleted.rectifyPhoto;
+                    img.style.width = '100px';
+                    rectifyPhotoCell.appendChild(img);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = deleted.rectifyPhoto;
+                    downloadLink.download = `rectify_photo_${deleted.id}.jpg`;
+                    downloadLink.textContent = '下载';
+                    rectifyPhotoCell.appendChild(downloadLink);
+                } else {
+                    rectifyPhotoCell.textContent = '无照片';
+                }
+                row.insertCell().textContent = deleted.rectifier;
+                row.insertCell().textContent = deleted.deleter;
+            });
+        }
+
+        // 清空已删除记录
+        clearDeleted.addEventListener('click', () => {
+            if (confirm('确定要清空已删除记录吗？')) {
+                deletedData = [];
+                saveDataToLocalStorage();
+                populateDeletedTable();
+                alert('已删除记录已清空');
+            }
+        });
+
+        // 保存数据到 localStorage，并添加错误处理
+        function saveDataToLocalStorage() {
+            try {
+                localStorage.setItem('recordData', JSON.stringify(recordData));
+                localStorage.setItem('rectifyData', JSON.stringify(rectifyData));
+                localStorage.setItem('summaryData', JSON.stringify(summaryData));
+                localStorage.setItem('deletedData', JSON.stringify(deletedData));
+            } catch (error) {
+                console.error('保存数据到 localStorage 时出错:', error);
+            }
+        }
+
+        // 页面加载时初始化表格
+        window.addEventListener('load', () => {
+            recordData = getLocalData('recordData');
+            rectifyData = getLocalData('rectifyData');
+            summaryData = getLocalData('summaryData');
+            deletedData = getLocalData('deletedData');
+            populateRectifyTable();
+            populateRectifyLocationFilter();
+            populateSummaryTable();
+            populateSummaryLocationFilter();
+            populateDeletedTable();
+        });
+    </script>
+</body>
+
+</html
